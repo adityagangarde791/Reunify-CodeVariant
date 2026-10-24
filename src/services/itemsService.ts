@@ -269,10 +269,10 @@ export const itemsService = {
       } else {
         const activeReports = allActiveReports ?? [];
 
-        if (activeReports.length > 0) {
-          const mappedExisting = activeReports.map((report) =>
-            mapReportRowToItem(report)
-          );
+if (activeReports.length > 0) {
+  const mappedExisting = activeReports.map((r) =>
+    mapReportRowToItem(r)
+  );
 
           const matches = findMatchesForItem(
             createdItem,
