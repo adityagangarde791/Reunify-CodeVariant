@@ -7,7 +7,7 @@ Reunify is a full-stack, enterprise-grade digital lost and found platform built 
 
 ---
 
-## 👥 Engineering & Design Team
+## Engineering & Design Team
 
 - **Aditya Gangarde** — Product Engineering & Full-Stack Development
 - **Atharv Gandage** — Systems Architecture & Administrative Operations
@@ -16,7 +16,7 @@ Reunify is a full-stack, enterprise-grade digital lost and found platform built 
 
 ---
 
-## 🎯 Target Campus Personas
+##  Target Campus Personas
 
 1. **Students** — Fast reporting and discovery of personal electronics, airpods, backpacks, and dorm keys.
 2. **Faculty & Staff** — Recovery of lecture accessories, eyewear, lab keys, and textbooks.
@@ -25,7 +25,7 @@ Reunify is a full-stack, enterprise-grade digital lost and found platform built 
 
 ---
 
-## 🚀 The 5-Step Recovery Journey
+##  The 5-Step Recovery Journey
 
 ```
 [ 01. REPORT ] ──> [ 02. MATCH ] ──> [ 03. CLAIM ] ──> [ 04. VERIFY ] ──> [ 05. RETURN ]
@@ -35,7 +35,7 @@ Reunify is a full-stack, enterprise-grade digital lost and found platform built 
 
 ---
 
-## 🛠️ Technology Architecture
+##  Technology Architecture
 
 ### Frontend
 - **Framework**: React 19 + TypeScript (Strict Mode)
@@ -58,7 +58,7 @@ Reunify is a full-stack, enterprise-grade digital lost and found platform built 
 
 ---
 
-## 🧠 Smart Matching Engine (100 Point Explainable Formula)
+##  Smart Matching Engine (100 Point Explainable Formula)
 
 Reunify utilizes a deterministic, transparent scoring engine that breaks down matching into five explainable criteria:
 
@@ -74,7 +74,7 @@ Reunify utilizes a deterministic, transparent scoring engine that breaks down ma
 
 ---
 
-## 🔒 Confidential Claims & Verification Lifecycle
+##  Confidential Claims & Verification Lifecycle
 
 ```
 [ Submitted ] ──> [ Under Review ] ──> [ Approved ] ──> [ Handover Pending ] ──> [ Returned ]
@@ -90,7 +90,7 @@ Reunify utilizes a deterministic, transparent scoring engine that breaks down ma
 
 ---
 
-## 📁 Repository Structure
+## Repository Structure
 
 ```
 reunify/
@@ -144,7 +144,7 @@ reunify/
 
 ---
 
-## ⚡ Quick Start & Development
+## Quick Start & Development
 
 ### 1. Install Dependencies
 ```bash
@@ -181,7 +181,7 @@ npm run build
 
 ---
 
-## 🌐 Production Deployment Guide
+##  Production Deployment Guide
 
 ### 1. Supabase Backend Setup
 1. Log in to [Supabase Dashboard](https://supabase.com/dashboard) and create a new project.
