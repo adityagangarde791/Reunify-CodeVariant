@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <defs>
+    <linearGradient id="reunifyGrad" x1="4" y1="4" x2="44" y2="44" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#06B6D4" />
+      <stop offset="50%" stop-color="#2563EB" />
+      <stop offset="100%" stop-color="#0D9488" />
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+  <!-- Midnight background container -->
+  <rect width="48" height="48" rx="14" fill="#0B1120" />
+  <rect x="1" y="1" width="46" height="46" rx="13" stroke="rgba(255,255,255,0.08)" stroke-width="1.5" />
+  
+  <!-- Interlocking recovery loop glyph -->
+  <!-- Left loop arc (lost searching) -->
+  <path d="M14 24C14 18.4772 18.4772 14 24 14C27.5 14 30.5 15.8 32.2 18.5L28.8 20.8C27.6 19 25.9 18 24 18C20.6863 18 18 20.6863 18 24C18 27.3137 20.6863 30 24 30C26.5 30 28.5 28.5 29.5 26.2H23.5V22.2H34V25C33 30.5 28.8 34 24 34C18.4772 34 14 29.5228 14 24Z" fill="url(#reunifyGrad)" />
+  
+  <!-- Dynamic Reunify Spark / Focus Pin in cyan -->
+  <circle cx="34" cy="14" r="3.5" fill="#38BDF8" filter="url(#glow)" />
+  <circle cx="34" cy="14" r="2" fill="#FFFFFF" />
+</svg>
