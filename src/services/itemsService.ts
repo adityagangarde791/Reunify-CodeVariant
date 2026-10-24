@@ -175,6 +175,7 @@ export const itemsService = {
     }
   },
 
+
   // Create new report
   createItem: async (
     itemData: Omit<Item, 'id' | 'created_at' | 'updated_at' | 'status'>,
@@ -194,9 +195,16 @@ export const itemsService = {
       report_type: itemData.type || itemData.report_type || 'lost',
       category: itemData.category,
       location: itemData.location_name || itemData.location || 'Campus',
-      location_building: itemData.location_building || (itemData.location_name ? itemData.location_name.split(',')[0] : 'Campus'),
+      location_building:
+        itemData.location_building ||
+        (itemData.location_name
+          ? itemData.location_name.split(',')[0]
+          : 'Campus'),
       campus_zone: itemData.campus_zone || 'Central Campus',
-      incident_date: itemData.date_lost_or_found || itemData.incident_date || new Date().toISOString(),
+      incident_date:
+        itemData.date_lost_or_found ||
+        itemData.incident_date ||
+        new Date().toISOString(),
       status: 'open',
       image_url: itemData.primary_image_url || itemData.image_url || null,
       contact_preference: itemData.contact_preference || 'in_app',
@@ -205,71 +213,143 @@ export const itemsService = {
     };
 
     const { data, error } = await supabase
-  .from('reports')
-  .insert(insertPayload)
-  .select('*')
-  .single();
+      .from('reports')
+      .insert(insertPayload)
+      .select('*')
+      .single();
 
-if (error) {
-  throw new Error(`Report submission failed: ${error.message}`);
-}
+    if (error) {
+      throw new Error(`Report submission failed: ${error.message}`);
+    }
 
-return data;
+    if (!data) {
+      throw new Error('Report submission failed: no report data was returned.');
+    }
 
     const createdItem = mapReportRowToItem(data, authorProfile);
 
-    // Insert timeline event into case_timeline_events
+    // Add the initial timeline event.
     try {
-      await supabase.from('case_timeline_events').insert({
-        report_id: createdItem.id,
-        actor_id: currentUserId,
-        event_type: 'reported',
-        title: createdItem.report_type === 'lost' ? 'Lost Report Logged' : 'Found Report Logged',
-        description: `${authorProfile.full_name} (${authorProfile.role}) logged "${createdItem.title}" at ${createdItem.location}.`,
-      });
+      const { error: timelineError } = await supabase
+        .from('case_timeline_events')
+        .insert({
+          report_id: createdItem.id,
+          actor_id: currentUserId,
+          event_type: 'reported',
+          title:
+            createdItem.report_type === 'lost'
+              ? 'Lost Report Logged'
+              : 'Found Report Logged',
+          description: `${authorProfile.full_name} (${authorProfile.role}) logged "${createdItem.title}" at ${createdItem.location}.`,
+        });
+
+      if (timelineError) {
+        console.warn('Could not insert timeline event:', timelineError);
+      }
     } catch (timelineErr) {
       console.warn('Could not insert timeline event:', timelineErr);
     }
 
-    // Run smart matching against active existing reports in Supabase
+    // Find potential matches against existing active reports.
     try {
-      const { data: allActiveReports } = await supabase
+      const {
+        data: allActiveReports,
+        error: activeReportsError,
+      } = await supabase
         .from('reports')
         .select('*')
         .neq('id', createdItem.id)
         .in('status', ['open', 'potential_match']);
 
-      if (allActiveReports && allActiveReports.length > 0) {
-        const mappedExisting = allActiveReports.map((r) => mapReportRowToItem(r));
-        const matches = findMatchesForItem(createdItem, mappedExisting, 65);
+      if (activeReportsError) {
+        console.warn(
+          'Could not retrieve reports for smart matching:',
+          activeReportsError
+        );
+      } else {
+        const activeReports = allActiveReports ?? [];
 
-        if (matches.length > 0) {
-          const topMatch = matches[0];
-          const matchedItem = createdItem.type === 'lost' ? topMatch.found_item : topMatch.lost_item;
+        if (activeReports.length > 0) {
+          const mappedExisting = activeReports.map((report) =>
+            mapReportRowToItem(report)
+          );
 
-          // Update both reports to potential_match
-          await supabase.from('reports').update({ status: 'potential_match' }).eq('id', createdItem.id);
-          await supabase.from('reports').update({ status: 'potential_match' }).eq('id', matchedItem.id);
+          const matches = findMatchesForItem(
+            createdItem,
+            mappedExisting,
+            65
+          );
 
-          // Add match timeline event
-          await supabase.from('case_timeline_events').insert({
-            report_id: createdItem.id,
-            actor_id: currentUserId,
-            event_type: 'match_detected',
-            title: `Smart Match Detected (${topMatch.score}%)`,
-            description: `Potential candidate pair: "${matchedItem.title}" reported at ${matchedItem.location}.`,
-          });
+          if (matches.length > 0) {
+            const topMatch = matches[0];
+            const matchedItem =
+              createdItem.type === 'lost'
+                ? topMatch.found_item
+                : topMatch.lost_item;
 
-          // Create in-app notification for the owner of the other item
-          await supabase.from('notifications').insert({
-            user_id: matchedItem.user_id,
-            title: `Potential Match Detected (${topMatch.score}%)`,
-            message: `A new report matching your item "${matchedItem.title}" was registered: "${createdItem.title}".`,
-            type: 'match_found',
-            related_report_id: createdItem.id,
-            link_url: `/items/${createdItem.id}`,
-            is_read: false,
-          });
+            // Update both reports to potential_match.
+            const { error: newReportUpdateError } = await supabase
+              .from('reports')
+              .update({ status: 'potential_match' })
+              .eq('id', createdItem.id);
+
+            if (newReportUpdateError) {
+              console.warn(
+                'Could not update new report status:',
+                newReportUpdateError
+              );
+            }
+
+            const { error: matchedReportUpdateError } = await supabase
+              .from('reports')
+              .update({ status: 'potential_match' })
+              .eq('id', matchedItem.id);
+
+            if (matchedReportUpdateError) {
+              console.warn(
+                'Could not update matched report status:',
+                matchedReportUpdateError
+              );
+            }
+
+            // Add a match timeline event.
+            const { error: matchTimelineError } = await supabase
+              .from('case_timeline_events')
+              .insert({
+                report_id: createdItem.id,
+                actor_id: currentUserId,
+                event_type: 'match_detected',
+                title: `Smart Match Detected (${topMatch.score}%)`,
+                description: `Potential candidate pair: "${matchedItem.title}" reported at ${matchedItem.location}.`,
+              });
+
+            if (matchTimelineError) {
+              console.warn(
+                'Could not insert match timeline event:',
+                matchTimelineError
+              );
+            }
+
+            // Notify the owner of the other report.
+            const { error: notificationError } = await supabase
+              .from('notifications')
+              .insert({
+                user_id: matchedItem.user_id,
+                title: `Potential Match Detected (${topMatch.score}%)`,
+                message: `A new report matching your item "${matchedItem.title}" was registered: "${createdItem.title}".`,
+                type: 'match_found',
+                related_report_id: createdItem.id,
+                link_url: `/items/${createdItem.id}`,
+                is_read: false,
+              });
+
+            if (notificationError) {
+              console.warn(
+                'Could not create match notification:',
+                notificationError
+              );
+            }
+          }
         }
       }
     } catch (matchErr) {
@@ -279,48 +359,6 @@ return data;
     return createdItem;
   },
 
-  // Update an existing report
-  updateItem: async (itemId: string, updates: Partial<Item>): Promise<Item> => {
-    if (!isSupabaseConfigured()) {
-      throw new Error('Supabase is not configured.');
-    }
-
-    const payload: Record<string, any> = {
-      updated_at: new Date().toISOString(),
-    };
-
-    if (updates.title) payload.title = updates.title.trim();
-    if (updates.description) payload.description = updates.description.trim();
-    if (updates.category) payload.category = updates.category;
-    if (updates.location || updates.location_name) payload.location = (updates.location || updates.location_name)?.trim();
-    if (updates.location_building) payload.location_building = updates.location_building.trim();
-    if (updates.campus_zone) payload.campus_zone = updates.campus_zone;
-    if (updates.status) payload.status = updates.status;
-    if (updates.image_url || updates.primary_image_url) payload.image_url = updates.image_url || updates.primary_image_url;
-    if (updates.custody_location !== undefined) payload.custody_location = updates.custody_location;
-    if (updates.confidential_notes !== undefined) payload.confidential_notes = updates.confidential_notes;
-
-    const { data, error } = await supabase
-      .from('reports')
-      .update(payload)
-      .eq('id', itemId)
-      .select(`
-        *,
-        profiles:user_id (
-          id,
-          full_name,
-          role,
-          email
-        )
-      `)
-      .single();
-
-    if (error || !data) {
-      throw new Error(`Failed to update report: ${error?.message || 'Database error'}`);
-    }
-
-    return mapReportRowToItem(data, data.profiles);
-  },
 
   // Delete a report (only allowed for owner when open, or admin)
   deleteItem: async (itemId: string): Promise<boolean> => {
@@ -341,9 +379,33 @@ return data;
   },
 
   // Update item status
-  updateItemStatus: async (itemId: string, status: Item['status']): Promise<Item | null> => {
-    return itemsService.updateItem(itemId, { status });
+  
+  updateItemStatus: async (
+    itemId: string,
+    status: Item['status']
+  ): Promise<Item | null> => {
+    if (!isSupabaseConfigured()) {
+      throw new Error('Supabase is not configured.');
+    }
+
+    const { data, error } = await supabase
+      .from('reports')
+      .update({ status })
+      .eq('id', itemId)
+      .select('*')
+      .maybeSingle();
+
+    if (error) {
+      throw new Error(`Failed to update report status: ${error.message}`);
+    }
+
+    if (!data) {
+      return null;
+    }
+
+    return mapReportRowToItem(data);
   },
+
 
   // Submit an Ownership Claim with private evidence
   submitClaim: async (
