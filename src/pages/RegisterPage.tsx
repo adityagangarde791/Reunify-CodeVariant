@@ -44,6 +44,7 @@ export const RegisterPage: React.FC = () => {
     setLoading(false);
 
     if (res.error) {
+        console.error('Signup error:', res.error);
       // Map common Supabase errors to friendlier messages
       const msg = res.error;
       let friendly = msg;

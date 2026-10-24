@@ -35,4 +35,4 @@ dist/
 
 # Local IDE settings
 .vscode/
-.idea/
+.idea/supabase/.temp/

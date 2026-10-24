@@ -205,22 +205,16 @@ export const itemsService = {
     };
 
     const { data, error } = await supabase
-      .from('reports')
-      .insert(insertPayload)
-      .select(`
-        *,
-        profiles:user_id (
-          id,
-          full_name,
-          role,
-          email
-        )
-      `)
-      .single();
+  .from('reports')
+  .insert(insertPayload)
+  .select('*')
+  .single();
 
-    if (error || !data) {
-      throw new Error(`Report submission failed: ${error?.message || 'Database insert error'}`);
-    }
+if (error) {
+  throw new Error(`Report submission failed: ${error.message}`);
+}
+
+return data;
 
     const createdItem = mapReportRowToItem(data, authorProfile);
 

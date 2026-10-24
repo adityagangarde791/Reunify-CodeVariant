@@ -110,6 +110,29 @@ export const CanvasDropZoneAction: React.FC<CanvasDropZoneActionProps> = ({
     }
   }, [errorMessage]);
 
+  const isPointInsideZone = (point: { x: number; y: number }) => {
+    if (!zoneRef.current) return false;
+    const rect = zoneRef.current.getBoundingClientRect();
+    const scrollX = window.scrollX || window.pageXOffset || 0;
+    const scrollY = window.scrollY || window.pageYOffset || 0;
+
+    // Viewport coordinates check (clientX / clientY)
+    const isInsideViewport =
+      point.x >= rect.left &&
+      point.x <= rect.right &&
+      point.y >= rect.top &&
+      point.y <= rect.bottom;
+
+    // Page coordinates check (pageX / pageY from framer-motion PanInfo)
+    const isInsidePage =
+      point.x >= rect.left + scrollX &&
+      point.x <= rect.right + scrollX &&
+      point.y >= rect.top + scrollY &&
+      point.y <= rect.bottom + scrollY;
+
+    return isInsideViewport || isInsidePage;
+  };
+
   const triggerExecution = async () => {
     if (disabled || isLoading) return;
 
@@ -145,32 +168,18 @@ export const CanvasDropZoneAction: React.FC<CanvasDropZoneActionProps> = ({
 
     try {
       await onExecute();
-    } catch {
+    } catch (err: unknown) {
       setIsDropped(false);
+      setErrorMessage(err instanceof Error ? err.message : 'Execution failed.');
     }
   };
 
   const handleDrag = (_: unknown, info: { point: { x: number; y: number } }) => {
-    if (!zoneRef.current) return;
-    const rect = zoneRef.current.getBoundingClientRect();
-    const isInside =
-      info.point.x >= rect.left &&
-      info.point.x <= rect.right &&
-      info.point.y >= rect.top &&
-      info.point.y <= rect.bottom;
-
-    setIsOver(isInside);
+    setIsOver(isPointInsideZone(info.point));
   };
 
   const handleDragEnd = async (_: unknown, info: { point: { x: number; y: number } }) => {
-    if (!zoneRef.current) return;
-    const rect = zoneRef.current.getBoundingClientRect();
-    const isInside =
-      info.point.x >= rect.left &&
-      info.point.x <= rect.right &&
-      info.point.y >= rect.top &&
-      info.point.y <= rect.bottom;
-
+    const isInside = isPointInsideZone(info.point);
     setIsOver(false);
 
     if (isInside) {
