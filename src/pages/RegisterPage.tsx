@@ -3,10 +3,11 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, User, ArrowRight, ShieldCheck, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { Logo } from '../components/common/Logo';
+import { CanvasDropZoneAction } from '../components/canvas/CanvasDropZoneAction';
 
 export const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
-  const { signUp } = useAuth();
+  const { signUp, isSupabaseConnected } = useAuth();
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -31,12 +32,32 @@ export const RegisterPage: React.FC = () => {
       return;
     }
 
+    // Ensure Supabase is configured before attempting sign‑up
+    if (!isSupabaseConnected) {
+      setError('Supabase is not configured. Please set the project URL and anon key.');
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     const res = await signUp(email, password, fullName);
     setLoading(false);
 
     if (res.error) {
-      setError(res.error);
+      // Map common Supabase errors to friendlier messages
+      const msg = res.error;
+      let friendly = msg;
+      const lower = msg.toLowerCase();
+      if (lower.includes('already registered') || lower.includes('duplicate')) {
+        friendly = 'An account with this email already exists. Please sign in or reset your password.';
+      } else if (lower.includes('invalid email')) {
+        friendly = 'Please enter a valid campus email address.';
+      } else if (lower.includes('password')) {
+        friendly = 'Password must meet the required criteria (minimum 6 characters).';
+      } else if (lower.includes('rate limit') || lower.includes('too many requests')) {
+        friendly = 'Too many registration or confirmation email requests. Please wait before trying again.';
+      }
+      setError(friendly);
     } else {
       setMessage(res.message || 'Account created successfully!');
       setTimeout(() => navigate('/explore'), 1500);
@@ -143,14 +164,32 @@ export const RegisterPage: React.FC = () => {
             Registered accounts receive standard member privileges. Administrative clearance is granted through internal campus verification.
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3 rounded-xl bg-brand-blue hover:bg-blue-600 text-white font-bold text-xs shadow-soft-glow transition-all flex items-center justify-center gap-2 mt-2"
-          >
-            <span>{loading ? 'Creating Account...' : 'Register'}</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
+          <div className="pt-2">
+            <CanvasDropZoneAction
+              cardLabel="Membership Registration Key"
+              cardSublabel="Drag to initialize member account"
+              cardIcon={<User className="w-4 h-4 text-white" />}
+              zoneLabel="Account Activation Chamber"
+              zoneDescription="Drop here to register in Supabase"
+              variant="blue"
+              isLoading={loading}
+              loadingLabel="Creating Account in Supabase..."
+              disabled={loading}
+              onValidate={() => {
+                if (password !== confirmPassword) {
+                  throw new Error('Passwords do not match');
+                }
+                if (password.length < 6) {
+                  throw new Error('Password must be at least 6 characters');
+                }
+                return true;
+              }}
+              onExecute={async () => {
+                await handleSubmit({ preventDefault: () => {} } as React.FormEvent);
+              }}
+              keyboardActionName="Register Account"
+            />
+          </div>
         </form>
 
         <div className="mt-6 text-center text-xs text-slate-500">

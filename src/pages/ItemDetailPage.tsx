@@ -6,7 +6,6 @@ import {
   Calendar, 
   Shield, 
   Sparkles, 
-  CheckCircle2, 
   ShieldAlert, 
   Clock, 
   Share2, 
@@ -14,13 +13,13 @@ import {
   Building2, 
   Send, 
   Lock,
-  Trash2,
-  Check
+  Trash2
 } from 'lucide-react';
 import { useItems } from '../context/ItemsContext';
 import { useAuth } from '../context/AuthContext';
 import { Item, CaseTimelineEvent, MatchCandidate } from '../types';
 import { TypeBadge, StatusBadge } from '../components/common/Badge';
+import { CanvasDropZoneAction } from '../components/canvas/CanvasDropZoneAction';
 
 export const ItemDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -346,16 +345,19 @@ export const ItemDetailPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Action Buttons */}
-            <div className="pt-4 border-t border-slate-100 space-y-2.5">
+            {/* Canvas Protocol Action Hub */}
+            <div className="pt-4 border-t border-slate-100 space-y-3">
               {(item.report_type === 'found' || item.type === 'found') && !isOwner && item.status !== 'returned' && (
-                <button
-                  onClick={handleOpenClaimModal}
-                  className="w-full py-3.5 rounded-2xl bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs shadow-soft transition-all flex items-center justify-center gap-2"
-                >
-                  <ShieldCheck className="w-4 h-4" />
-                  <span>Claim Ownership of This Item</span>
-                </button>
+                <CanvasDropZoneAction
+                  cardLabel="Ownership Claim Pass"
+                  cardSublabel="Drag to initiate claim"
+                  cardIcon={<ShieldCheck className="w-4 h-4 text-white" />}
+                  zoneLabel="Claim Initiation Bay"
+                  zoneDescription="Drop here to verify ownership"
+                  variant="teal"
+                  onExecute={handleOpenClaimModal}
+                  keyboardActionName="Claim Ownership"
+                />
               )}
 
               {(item.report_type === 'lost' || item.type === 'lost') && (
@@ -377,15 +379,21 @@ export const ItemDetailPage: React.FC = () => {
 
               {/* Owner / Staff Actions */}
               {(isOwner || isSecurityOrAdmin) && (
-                <div className="pt-2 border-t border-slate-100 flex items-center gap-2">
-                  <button
+                <div className="pt-2 border-t border-slate-100">
+                  <CanvasDropZoneAction
+                    cardLabel="Purge Report Token"
+                    cardSublabel="Drag to permanently delete"
+                    cardIcon={<Trash2 className="w-4 h-4 text-white" />}
+                    zoneLabel="Permanent Deletion Chamber"
+                    zoneDescription="Drop here to decommission report"
+                    variant="rose"
+                    isLoading={isDeleting}
+                    loadingLabel="Deleting report..."
                     disabled={isDeleting}
-                    onClick={handleDelete}
-                    className="flex-1 py-2 rounded-xl text-xs font-semibold text-rose-600 hover:bg-rose-50 border border-rose-200 transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                    <span>Delete Report</span>
-                  </button>
+                    confirmMessage="Are you sure you want to delete this report? This action is permanent and cannot be undone."
+                    onExecute={handleDelete}
+                    keyboardActionName="Delete Report"
+                  />
                 </div>
               )}
             </div>
@@ -485,22 +493,52 @@ export const ItemDetailPage: React.FC = () => {
                 </p>
               </div>
 
-              <div className="pt-3 flex items-center justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => setClaimModalOpen(false)}
-                  className="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
+              <div className="pt-2 border-t border-slate-100 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold text-slate-500 font-mono uppercase">
+                    Execution Protocol
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setClaimModalOpen(false)}
+                    className="text-xs font-semibold text-slate-500 hover:text-slate-800"
+                  >
+                    Cancel
+                  </button>
+                </div>
+
+                <CanvasDropZoneAction
+                  cardLabel="Evidence Transmission Token"
+                  cardSublabel="Drag to dispatch claim"
+                  cardIcon={<Send className="w-4 h-4 text-white" />}
+                  zoneLabel="Reviewer Moderation Bay"
+                  zoneDescription="Drop here to lodge claim"
+                  variant="teal"
+                  isLoading={isSubmittingClaim}
+                  loadingLabel="Submitting to Supabase..."
                   disabled={isSubmittingClaim}
-                  className="px-6 py-2.5 rounded-xl bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs shadow-soft transition-all flex items-center gap-1.5 disabled:opacity-50"
-                >
-                  <Send className="w-3.5 h-3.5" />
-                  <span>{isSubmittingClaim ? 'Submitting to Supabase...' : 'Submit Claim'}</span>
-                </button>
+                  onValidate={() => {
+                    if (!ownershipProof.trim()) {
+                      throw new Error('Please enter confidential ownership evidence before submitting.');
+                    }
+                    return true;
+                  }}
+                  onExecute={async () => {
+                    if (!ownershipProof.trim()) return;
+                    setIsSubmittingClaim(true);
+                    try {
+                      await submitClaim(item.id, ownershipProof.trim());
+                      setClaimModalOpen(false);
+                      setOwnershipProof('');
+                      navigate('/my-cases');
+                    } catch (err: unknown) {
+                      showToast(err instanceof Error ? err.message : 'Claim failed', 'error');
+                    } finally {
+                      setIsSubmittingClaim(false);
+                    }
+                  }}
+                  keyboardActionName="Submit Ownership Claim"
+                />
               </div>
             </form>
           </div>

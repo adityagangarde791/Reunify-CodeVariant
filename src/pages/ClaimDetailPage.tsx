@@ -17,6 +17,7 @@ import { useAuth } from '../context/AuthContext';
 import { Claim } from '../types';
 import { StatusBadge } from '../components/common/Badge';
 import { QRHandoverModal } from '../components/common/QRHandoverModal';
+import { CanvasDropZoneAction } from '../components/canvas/CanvasDropZoneAction';
 
 export const ClaimDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -207,13 +208,22 @@ export const ClaimDetailPage: React.FC = () => {
               </button>
 
               {isAuthorizedReviewer && (
-                <button
-                  onClick={handleReturnAction}
-                  disabled={isProcessing}
-                  className="w-full py-2.5 rounded-xl bg-white border border-teal-300 text-teal-800 font-semibold text-xs hover:bg-teal-100/50 transition-colors"
-                >
-                  Confirm Physical Handover (Officer Action)
-                </button>
+                <div className="pt-2 border-t border-slate-100">
+                  <CanvasDropZoneAction
+                    cardLabel="Custody Handover Token"
+                    cardSublabel="Drag to verify return"
+                    cardIcon={<CheckCircle2 className="w-4 h-4 text-white" />}
+                    zoneLabel="Physical Custody Transfer Bay"
+                    zoneDescription="Drop here to confirm item handover"
+                    variant="teal"
+                    isLoading={isProcessing}
+                    loadingLabel="Certifying handover..."
+                    disabled={isProcessing}
+                    confirmMessage="Confirm physical handover of this item to claimant?"
+                    onExecute={handleReturnAction}
+                    keyboardActionName="Confirm Physical Handover"
+                  />
+                </div>
               )}
             </div>
           )}
@@ -222,7 +232,7 @@ export const ClaimDetailPage: React.FC = () => {
           {isAuthorizedReviewer && claim.status !== 'returned' && claim.status !== 'approved' && (
             <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-card space-y-4">
               <span className="text-xs font-bold text-slate-900 block border-b border-slate-100 pb-2">
-                Authorized Reviewer Actions
+                Authorized Reviewer Actions (Canvas Protocol)
               </span>
 
               <div>
@@ -250,23 +260,35 @@ export const ClaimDetailPage: React.FC = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-2 pt-2">
-                <button
-                  onClick={() => handleReviewAction(true)}
+              <div className="space-y-3 pt-2">
+                <CanvasDropZoneAction
+                  cardLabel="Officer Approval Seal"
+                  cardSublabel="Drag to approve ownership"
+                  cardIcon={<CheckCircle2 className="w-4 h-4 text-white" />}
+                  zoneLabel="Approve Claim Chamber"
+                  zoneDescription="Drop here to issue digital handover pass"
+                  variant="teal"
+                  isLoading={isProcessing}
+                  loadingLabel="Approving claim..."
                   disabled={isProcessing}
-                  className="py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all"
-                >
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span>Approve Claim</span>
-                </button>
-                <button
-                  onClick={() => handleReviewAction(false)}
+                  onExecute={() => handleReviewAction(true)}
+                  keyboardActionName="Approve Claim"
+                />
+
+                <CanvasDropZoneAction
+                  cardLabel="Claim Decline Token"
+                  cardSublabel="Drag to reject claim"
+                  cardIcon={<XCircle className="w-4 h-4 text-white" />}
+                  zoneLabel="Reject Claim Chamber"
+                  zoneDescription="Drop here to decline claim"
+                  variant="rose"
+                  isLoading={isProcessing}
+                  loadingLabel="Declining claim..."
                   disabled={isProcessing}
-                  className="py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all"
-                >
-                  <XCircle className="w-4 h-4" />
-                  <span>Reject Claim</span>
-                </button>
+                  confirmMessage="Are you sure you want to decline this claim?"
+                  onExecute={() => handleReviewAction(false)}
+                  keyboardActionName="Reject Claim"
+                />
               </div>
             </div>
           )}

@@ -29,6 +29,7 @@ import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import { PrivacyPage } from './pages/PrivacyPage';
 import { TermsPage } from './pages/TermsPage';
 import { NotFoundPage } from './pages/NotFoundPage';
+import { CanvasProtocolPage } from './pages/CanvasProtocolPage';
 
 // Helper component to scroll to top on route change
 function ScrollToTop() {
@@ -59,6 +60,7 @@ function App() {
                 <Routes>
                   {/* Public Discovery Routes */}
                   <Route path="/" element={<HomePage />} />
+                  <Route path="/canvas" element={<CanvasProtocolPage />} />
                   <Route path="/explore" element={<ExplorePage />} />
                   <Route path="/items/:id" element={<ItemDetailPage />} />
                   <Route path="/matches" element={<MatchesPage />} />

@@ -67,6 +67,15 @@ export const Navbar: React.FC = () => {
 
         {/* Desktop Navigation Links */}
         <nav className="hidden md:flex items-center gap-1.5">
+          <NavLink to="/canvas" className={navLinkClass}>
+            <span className="flex items-center gap-1.5">
+              <Layers className="w-3.5 h-3.5 text-teal-600" />
+              <span>Canvas</span>
+              <span className="text-[9px] font-mono font-bold bg-teal-100 text-teal-800 px-1.5 py-0.2 rounded-full">
+                LIVE
+              </span>
+            </span>
+          </NavLink>
           <NavLink to="/explore" className={navLinkClass}>
             Explore
           </NavLink>
@@ -270,6 +279,12 @@ export const Navbar: React.FC = () => {
           </div>
 
           <nav className="flex flex-col space-y-1">
+            <NavLink to="/canvas" className={navLinkClass}>
+              <span className="flex items-center gap-1.5">
+                <Layers className="w-3.5 h-3.5 text-teal-600" />
+                <span>Canvas Protocol (Drag & Drop)</span>
+              </span>
+            </NavLink>
             <NavLink to="/explore" className={navLinkClass}>
               Explore Belongings
             </NavLink>

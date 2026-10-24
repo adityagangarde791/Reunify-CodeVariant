@@ -7,19 +7,18 @@ import {
   Sparkles, 
   ShieldCheck, 
   QrCode, 
-  Clock, 
-  CheckCircle2, 
   Users, 
   GraduationCap, 
   Briefcase, 
   ShieldAlert, 
   ChevronRight, 
   Inbox,
-  PlusCircle
+  Layers
 } from 'lucide-react';
 import { useItems } from '../context/ItemsContext';
 import { ItemCard } from '../components/common/ItemCard';
 import { CardGridSkeleton } from '../components/common/LoadingSkeleton';
+import { CanvasProtocolBoard } from '../components/canvas/CanvasProtocolBoard';
 
 export const HomePage: React.FC = () => {
   const navigate = useNavigate();
@@ -142,7 +141,7 @@ export const HomePage: React.FC = () => {
               </div>
             </motion.form>
 
-            {/* Primary & Secondary CTAs */}
+            {/* Primary Canvas Protocol Hero CTAs */}
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
@@ -150,31 +149,34 @@ export const HomePage: React.FC = () => {
               className="flex flex-wrap items-center justify-center gap-3.5 pt-4"
             >
               <Link
-                to="/report/lost"
-                className="px-6 py-3.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-sm shadow-soft transition-all flex items-center gap-2 group"
+                to="/canvas"
+                className="px-7 py-3.5 rounded-2xl bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-500 hover:to-teal-400 text-white font-bold text-sm shadow-lg shadow-teal-900/30 transition-all flex items-center gap-2 group ring-2 ring-teal-400/30"
               >
-                <span>Report Lost Item</span>
+                <Layers className="w-4 h-4 text-white" />
+                <span>Launch Full Canvas Workspace</span>
                 <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
               </Link>
-              <Link
-                to="/report/found"
-                className="px-6 py-3.5 rounded-xl bg-teal-700 hover:bg-teal-600 text-white font-bold text-sm shadow-soft transition-all flex items-center gap-2"
+              <a
+                href="#canvas-deck"
+                className="px-6 py-3.5 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-semibold text-sm border border-white/15 transition-all flex items-center gap-2"
               >
-                <span>Report Found Item</span>
-              </Link>
-              <Link
-                to="/explore"
-                className="px-6 py-3.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-semibold text-sm border border-white/15 transition-all"
-              >
-                Explore All
-              </Link>
+                <span>Interactive Deck</span>
+                <span className="text-[10px] font-mono bg-teal-400/20 text-teal-300 px-2 py-0.5 rounded-full font-bold">
+                  DRAG & DROP
+                </span>
+              </a>
             </motion.div>
           </div>
         </div>
       </section>
 
+      {/* 1.5. EMBEDDED CANVAS PROTOCOL INTERACTIVE DECK */}
+      <section id="canvas-deck" className="relative z-30 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-12 mb-12">
+        <CanvasProtocolBoard isEmbedded />
+      </section>
+
       {/* 2. RECENT DISCOVERIES SECTION */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-12 relative z-20">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20">
         <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-card border border-slate-200/90">
           <div className="flex items-center justify-between mb-6">
             <div>

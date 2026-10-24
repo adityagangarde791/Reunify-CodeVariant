@@ -20,14 +20,18 @@ export const SUPABASE_URL =
 export const SUPABASE_ANON_KEY = 
   parsedStoredConfig.anonKey || 
   import.meta.env.VITE_SUPABASE_ANON_KEY || 
+  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || 
   '';
+
+export const SUPABASE_PUBLISHABLE_KEY = SUPABASE_ANON_KEY;
 
 export const isSupabaseConfigured = (): boolean => {
   return Boolean(
     SUPABASE_URL && 
     SUPABASE_ANON_KEY && 
     !SUPABASE_URL.includes('your-project-id') &&
-    !SUPABASE_ANON_KEY.includes('your-anon-key')
+    !SUPABASE_ANON_KEY.includes('your-anon-key') &&
+    !SUPABASE_ANON_KEY.includes('your-publishable-key')
   );
 };
 

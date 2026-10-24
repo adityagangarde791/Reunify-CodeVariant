@@ -21,6 +21,7 @@ import { useAuth } from '../context/AuthContext';
 import { RoleBadge, StatusBadge, TypeBadge } from '../components/common/Badge';
 import { QRHandoverModal } from '../components/common/QRHandoverModal';
 import { Claim, Item } from '../types';
+import { CanvasDropZoneAction } from '../components/canvas/CanvasDropZoneAction';
 
 export const AdminPage: React.FC = () => {
   const { role, user } = useAuth();
@@ -266,25 +267,31 @@ export const AdminPage: React.FC = () => {
                   </p>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex flex-col sm:flex-row items-center gap-3">
                   <button
                     onClick={() => setSelectedClaimForQR(claim)}
-                    className="px-4 py-2 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-800 font-semibold text-xs border border-teal-200 flex items-center gap-1.5"
+                    className="px-3.5 py-2 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-800 font-semibold text-xs border border-teal-200 flex items-center gap-1.5 self-start sm:self-center"
                   >
                     <QrCode className="w-4 h-4" />
                     <span>View QR Pass</span>
                   </button>
-                  <button
-                    onClick={async () => {
-                      if (window.confirm('Confirm in-person handover of this item?')) {
+
+                  <div className="w-full sm:w-auto min-w-[280px]">
+                    <CanvasDropZoneAction
+                      cardLabel="Handover Token"
+                      cardSublabel="Drag to authorize"
+                      cardIcon={<Check className="w-4 h-4 text-white" />}
+                      zoneLabel="Handover Authorization Bay"
+                      zoneDescription="Drop here to execute return"
+                      variant="teal"
+                      compact
+                      confirmMessage="Confirm in-person handover of this item?"
+                      onExecute={async () => {
                         await confirmHandover(claim.id);
-                      }
-                    }}
-                    className="px-4 py-2 rounded-xl bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs shadow-soft flex items-center gap-1.5"
-                  >
-                    <Check className="w-4 h-4" />
-                    <span>Confirm Handover</span>
-                  </button>
+                      }}
+                      keyboardActionName="Confirm Handover"
+                    />
+                  </div>
                 </div>
               </div>
             ))
@@ -335,14 +342,21 @@ export const AdminPage: React.FC = () => {
                   >
                     View
                   </Link>
-                  <button
-                    disabled={moderatingId === item.id}
-                    onClick={() => handleDeleteItem(item.id, item.title)}
-                    className="px-3 py-1.5 rounded-lg text-xs font-semibold text-rose-600 hover:bg-rose-50 border border-rose-200 flex items-center gap-1 disabled:opacity-50"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                    <span>Delete</span>
-                  </button>
+                  <div className="w-full sm:w-auto min-w-[240px]">
+                    <CanvasDropZoneAction
+                      cardLabel="Revoke Token"
+                      cardSublabel="Drag to delete"
+                      cardIcon={<Trash2 className="w-3.5 h-3.5 text-white" />}
+                      zoneLabel="Purge Bay"
+                      zoneDescription="Drop to delete"
+                      variant="rose"
+                      compact
+                      disabled={moderatingId === item.id}
+                      confirmMessage={`Are you sure you want to delete report "${item.title}"? This action is permanent.`}
+                      onExecute={() => handleDeleteItem(item.id, item.title)}
+                      keyboardActionName="Delete Report"
+                    />
+                  </div>
                 </div>
               </div>
             ))}

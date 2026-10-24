@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS public.reports (
     category TEXT NOT NULL,
     location TEXT NOT NULL,
     incident_date TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
-    status TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open', 'claimed', 'resolved', 'closed', 'potential_match', 'returned')),
+    status TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('active', 'open', 'potential_match', 'claim_pending', 'claimed', 'handover_scheduled', 'resolved', 'returned', 'closed', 'cancelled')),
     image_url TEXT,
     contact_preference TEXT DEFAULT 'in_app' CHECK (contact_preference IN ('in_app', 'email', 'phone')),
     location_building TEXT,
@@ -83,7 +83,7 @@ CREATE TABLE IF NOT EXISTS public.claims (
     report_id UUID NOT NULL REFERENCES public.reports(id) ON DELETE CASCADE,
     claimant_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     message TEXT NOT NULL, -- Ownership proof evidence
-    status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'submitted', 'under_review', 'approved', 'rejected', 'withdrawn', 'handover_pending', 'returned')),
+    status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'submitted', 'under_review', 'approved', 'rejected', 'withdrawn', 'handover_pending', 'returned', 'cancelled')),
     reviewer_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
     reviewer_notes TEXT,
     reviewed_at TIMESTAMPTZ,

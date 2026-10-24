@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { RoleBadge } from '../components/common/Badge';
 import { User, Mail, Building, Phone, ShieldCheck, Check, AlertCircle } from 'lucide-react';
+import { CanvasDropZoneAction } from '../components/canvas/CanvasDropZoneAction';
 
 export const ProfilePage: React.FC = () => {
   const { user, role, updateProfile } = useAuth();
@@ -168,23 +169,35 @@ export const ProfilePage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="pt-4 flex items-center justify-between">
-                {isSaved ? (
-                  <span className="text-xs text-teal-700 font-semibold flex items-center gap-1">
+              <div className="pt-4 border-t border-slate-100 space-y-3">
+                {isSaved && (
+                  <div className="p-2.5 rounded-xl bg-teal-50 border border-teal-200 text-xs text-teal-800 font-semibold flex items-center gap-1.5">
                     <Check className="w-4 h-4 text-teal-600" />
-                    Changes saved to Supabase!
-                  </span>
-                ) : (
-                  <div />
+                    <span>Credentials successfully committed to Supabase!</span>
+                  </div>
                 )}
 
-                <button
-                  type="submit"
+                <CanvasDropZoneAction
+                  cardLabel="Profile Update Credential"
+                  cardSublabel="Drag to commit profile changes"
+                  cardIcon={<ShieldCheck className="w-4 h-4 text-white" />}
+                  zoneLabel="Supabase Profile Registry Bay"
+                  zoneDescription="Drop here to commit account data"
+                  variant="navy"
+                  isLoading={saving}
+                  loadingLabel="Committing to Supabase..."
                   disabled={saving}
-                  className="px-6 py-2.5 rounded-xl bg-navy-950 hover:bg-navy-900 text-white font-bold text-xs shadow-soft transition-all disabled:opacity-50"
-                >
-                  {saving ? 'Saving...' : 'Save Profile'}
-                </button>
+                  onValidate={() => {
+                    if (!fullName.trim()) {
+                      throw new Error('Full Name is required.');
+                    }
+                    return true;
+                  }}
+                  onExecute={async () => {
+                    await handleSubmit({ preventDefault: () => {} } as React.FormEvent);
+                  }}
+                  keyboardActionName="Save Profile"
+                />
               </div>
             </form>
           </div>

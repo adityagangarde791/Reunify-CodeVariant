@@ -20,6 +20,7 @@ import {
 import { useItems } from '../context/ItemsContext';
 import { useAuth } from '../context/AuthContext';
 import { ItemCategory } from '../types';
+import { CanvasDropZoneAction } from '../components/canvas/CanvasDropZoneAction';
 
 const reportLostSchema = z.object({
   title: z.string().min(3, 'Item title must be at least 3 characters').max(100),
@@ -49,6 +50,7 @@ export const ReportLostPage: React.FC = () => {
   const {
     register,
     handleSubmit,
+    trigger,
     formState: { errors },
   } = useForm<ReportLostFormData>({
     resolver: zodResolver(reportLostSchema),
@@ -409,22 +411,40 @@ export const ReportLostPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Submit */}
-          <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
-            <Link
-              to="/explore"
-              className="px-5 py-2.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors"
-            >
-              Cancel
-            </Link>
-            <button
-              type="submit"
+          {/* Canvas Protocol Drag-and-Drop Action */}
+          <div className="pt-4 border-t border-slate-100 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-navy-950 flex items-center gap-1.5">
+                <Sparkles className="w-4 h-4 text-amber-500" />
+                <span>Protocol Verification & Dispatch</span>
+              </span>
+              <Link
+                to="/explore"
+                className="text-xs font-semibold text-slate-500 hover:text-slate-800 transition-colors"
+              >
+                Cancel
+              </Link>
+            </div>
+
+            <CanvasDropZoneAction
+              cardLabel="Lost Report Carrier"
+              cardSublabel="Drag into Bay to submit report"
+              cardIcon={<Tag className="w-4 h-4 text-white" />}
+              zoneLabel="Report Dispatch Bay"
+              zoneDescription="Drop here to register lost belonging"
+              variant="amber"
+              isLoading={isSubmitting}
+              loadingLabel="Registering with Supabase..."
               disabled={isSubmitting}
-              className="px-8 py-3 rounded-xl bg-navy-950 hover:bg-navy-900 text-white font-bold text-xs shadow-soft transition-all flex items-center gap-2 disabled:opacity-50"
-            >
-              {isSubmitting && <Loader2 className="w-4 h-4 animate-spin text-teal-400" />}
-              <span>{isSubmitting ? 'Registering with Supabase...' : 'Submit Lost Report'}</span>
-            </button>
+              onValidate={async () => {
+                const isValid = await trigger();
+                return isValid;
+              }}
+              onExecute={async () => {
+                await handleSubmit(onSubmit)();
+              }}
+              keyboardActionName="Submit Lost Report"
+            />
           </div>
         </form>
       </div>

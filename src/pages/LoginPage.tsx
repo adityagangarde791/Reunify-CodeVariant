@@ -3,11 +3,12 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Mail, Lock, ArrowRight, AlertCircle, Shield } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { Logo } from '../components/common/Logo';
+import { CanvasDropZoneAction } from '../components/canvas/CanvasDropZoneAction';
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { signIn, isSupabaseConnected } = useAuth();
+  const { signIn } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -101,14 +102,29 @@ export const LoginPage: React.FC = () => {
             </div>
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3 rounded-xl bg-navy-950 hover:bg-navy-900 text-white font-bold text-xs shadow-soft transition-all flex items-center justify-center gap-2 mt-3 disabled:opacity-50"
-          >
-            <span>{loading ? 'Authenticating with Supabase...' : 'Sign In'}</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
+          <div className="pt-2">
+            <CanvasDropZoneAction
+              cardLabel="Campus Keycard"
+              cardSublabel="Drag to authenticate"
+              cardIcon={<Lock className="w-4 h-4 text-white" />}
+              zoneLabel="Supabase Auth Gateway"
+              zoneDescription="Drop here to authorize session"
+              variant="navy"
+              isLoading={loading}
+              loadingLabel="Authenticating with Supabase..."
+              disabled={loading}
+              onValidate={() => {
+                if (!email.trim() || !password) {
+                  throw new Error('Please provide both your campus email and password.');
+                }
+                return true;
+              }}
+              onExecute={async () => {
+                await handleSubmit({ preventDefault: () => {} } as React.FormEvent);
+              }}
+              keyboardActionName="Sign In"
+            />
+          </div>
         </form>
 
         {/* Security Assurance */}
